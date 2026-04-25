@@ -78,6 +78,7 @@ Target: 25 paying users by month 3 post-launch.
 - **Commits**: conventional commit messages, one feature per PR, link issue if applicable.
 - **Tests**: Vitest for `packages/core`, Playwright for dashboard flows, contract tests for every manifest.
 - **No secrets in repo.** Encrypted at rest in Supabase Vault; rotation documented in `docs/security.md`.
+- **Tidy folders by default.** When a new file doesn't fit an existing folder, create a neat folder for it rather than dumping it at the repo root or next to unrelated files. Match the `FOLDER STRUCTURE` map above; if a new top-level folder is needed (e.g. `docs/`, `scripts/`, `sql/`, `.github/`), create it with a one-line `README.md` explaining what lives there. Group related files (migrations, fixtures, workflows, ADRs) into their own subfolder once there are 3+ of them, don't wait for sprawl. Never scatter loose `*.sql`, `*.sh`, or `*.md` files at the repo root.
 
 ## LAUNCH INTEGRATIONS (v1)
 
@@ -112,6 +113,34 @@ Plus BYO OpenAPI from v1 day 1.
 - Do not ship features that require ongoing manual work per-customer (e.g., custom integrations for a single buyer).
 - Do not accept support contracts before v1 is stable.
 - Do not discuss pricing changes with users during private beta.
+
+## CODEX SECOND OPINION (mandatory for decisions)
+
+In this repo, Codex is the cross-model second opinion. Claude does not lock in a non-trivial decision alone. Before a decision is treated as final, Claude must consult Codex and weigh its response.
+
+**When Codex must be consulted (blocking before commit/PR):**
+
+- **Stack or library choices.** Adding, swapping, or removing anything in the `STACK` table, or pulling in any new runtime dependency.
+- **Architecture decisions.** Schema changes, RLS policy edits, queue topology, MCP runtime boundaries, manifest format changes, anything that would land in `.planning/decisions.md`.
+- **Security-sensitive code.** Auth flows, OAuth token handling, credential vault, encryption-at-rest, multi-tenant isolation.
+- **Integration manifests.** Each manifest in `packages/integrations/` gets a Codex pass before merge.
+- **Branch before PR.** Always run `/codex:review` (or `/codex` via gstack) on the diff. For high-stakes branches (auth, billing, RLS), also run `/codex:adversarial-review` to challenge the approach.
+- **When Claude is uncertain.** If you'd hedge in a comment ("I think", "this should work"), consult Codex first instead of shipping the hedge.
+
+**How to consult:**
+
+- Default to `/codex:review --background` for diff review on long branches; check with `/codex:status` and `/codex:result`.
+- Use `/codex:adversarial-review` when the question is "is this the right approach" rather than "is this code correct".
+- Use `/codex:rescue` to delegate investigation (flaky tests, regressions, "why is this slow") rather than burning Claude context on it.
+- For non-diff design questions, use the gstack `/codex` consult mode.
+
+**Decision discipline:**
+
+- Record the Codex verdict (pass / fail / disagreement) in the relevant `.planning/decisions.md` entry alongside Claude's reasoning. Both opinions stay in the record, even when they agree.
+- If Codex disagrees, do not silently override. Either resolve the disagreement (update the plan, ask the user) or write down explicitly why Claude is overruling Codex and what risk is being accepted.
+- Codex is read-only on review/adversarial-review. It will not edit the code, so the resolution is on Claude.
+
+This is not optional polish. The point of running both models is to catch what a single model misses; skipping the second opinion defeats the setup.
 
 ## gstack
 
