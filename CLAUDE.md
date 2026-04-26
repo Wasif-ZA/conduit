@@ -8,7 +8,10 @@ Read this entire file before making changes. Follow precisely.
 ## PROJECT IDENTITY
 
 - **Name**: Conduit
-- **One-liner**: Any AU/APAC SaaS → Claude via MCP in one OAuth click. Plus BYO OpenAPI for the long tail.
+- **One-liner**: The polished connect-debug-ship loop for wiring authenticated SaaS and OpenAPI specs to Claude via MCP. AU integrations bundled, not positioned.
+- **Wedge** (revised 2026-04-24 post-`/office-hours`): the developer loop above Nango: schema import, manifest inspection, tool testing, request/response logs, one-click debug. Not "any of N providers." One provider (Notion) plus BYO OpenAPI, done beautifully.
+- **Moat**: craft + OSS distribution (Linear analog). Not enterprise compliance, not regional focus.
+- **Target user**: indie developer or small team with an authenticated SaaS account or an internal API + OpenAPI spec who wants Claude to drive it. Global. Self-serve.
 - **Model**: Open core + paid hosting. MIT core, closed hosted-only features.
 - **Primary side project**: Yes (replaces Korvo as of 2026-04-23).
 - **Revenue target**: $500–2k AUD/mo by month 3 post-launch.
@@ -21,7 +24,8 @@ Read this entire file before making changes. Follow precisely.
 | Framework      | **Next.js 16** (App Router, Turbopack, React 19.2)  | Match Korvo conventions; proxy.ts for auth guards.                            |
 | UI             | TailwindCSS 4 + shadcn/ui                           | No framer-motion unless marketing page demands it.                            |
 | Auth + DB      | **Supabase** (Postgres + RLS + Auth)                | JWT enforces RLS. Encrypted credential vault for per-user OAuth tokens.       |
-| OAuth layer    | **Nango** (self-hosted on Railway)                  | MIT-licensed, covers ~250 providers. Do NOT roll custom OAuth per provider.   |
+| OAuth layer    | **Nango** (Cloud for Week 1 spike, self-hosted on Railway from Week 6) | MIT-licensed, covers ~250 providers. Do NOT roll custom OAuth per provider. Spike-window deviation logged in `.planning/decisions.md`. |
+| MCP runtime    | **`mcp-handler@1.0.4`** (Vercel) inside Next.js     | Stateless mode (no in-memory session state on serverless). Bearer-in-header auth via explicit `resolveUserFromBearer` resolver. |
 | Queue          | BullMQ 5 + ioredis                                  | For async MCP tool calls when provider APIs are slow.                         |
 | Payments       | **Stripe** (Checkout + Customer Portal)             | AUD pricing with GST-compliant invoices.                                      |
 | AI             | **Vercel AI SDK** (default) or **Anthropic SDK (direct)** or **Claude Agent SDK** where a multi-step loop is clearly justified | Default to lighter options for one-shot calls (BYO OpenAPI description refinement). Agent SDK is on the table when a feature genuinely needs autonomous reasoning. |
@@ -36,29 +40,45 @@ Read this entire file before making changes. Follow precisely.
 - Do NOT use Prisma in hosted-only paths. Use Supabase client directly to keep RLS enforcement in the JWT.
 - Do NOT add LangChain / LangGraph / CrewAI. If multi-step reasoning is needed, Claude Agent SDK is the in-ecosystem choice; avoid the Python / Node multi-framework zoo.
 
-## FOLDER STRUCTURE (target)
+## FOLDER STRUCTURE
+
+**Spike state (Week 1, single Next.js app):**
+
+```
+conduit/
+├── .planning/                     Strategy, roadmap, decisions, manifest spec, week-1, scaffold checklist
+├── app/                           Next.js 16 App Router (login, dashboard, connect, import, manifests, api/mcp/[slug])
+├── components/                    UI (shadcn-derived)
+├── lib/                           Supabase client, nango client, openapi parser, mcp-handler glue, ConduitError
+├── supabase/migrations/           SQL migrations (0001_spike.sql etc.)
+├── tests/                         Vitest unit + integration
+├── .env.example
+├── README.md                      Public-facing
+├── STATUS.md                      Weekly build-in-public log
+├── TODOS.md                       Deferred items (gated by signal or schedule)
+├── LICENSE                        MIT
+└── CLAUDE.md                      This file
+```
+
+**Week 2+ Turborepo target (deferred per `decisions.md` "Single Next.js app for Weekend Spike"):**
 
 ```
 conduit/
 ├── .planning/
-│   ├── roadmap.md                 12-week plan, weekly milestones
-│   ├── manifest-spec.md           YAML manifest format + worked Xero example
-│   └── decisions.md               Project-local decisions (stack swaps, API picks)
 ├── apps/
 │   ├── web/                       Next.js 16 dashboard + landing pages
-│   └── mcp-runtime/               MCP server that serves per-user endpoints
+│   └── mcp-runtime/               MCP server (extracted from app/api/mcp/[slug])
 ├── packages/
 │   ├── core/                      Manifest parser, MCP translation, shared types
 │   └── integrations/              YAML manifests (OSS, PR-friendly)
-│       ├── xero.yaml
 │       ├── notion.yaml
 │       └── ...
-├── nango-config/                  Nango provider configs, self-host
+├── nango-config/                  Nango provider configs (after Week 6 self-host migration)
 ├── docker-compose.yml             Local dev: Next + Redis + Nango + Supabase
 ├── .env.example
-├── README.md                      Public-facing
-├── LICENSE                        MIT (core + integrations only)
-└── CLAUDE.md                      This file
+├── README.md
+├── LICENSE
+└── CLAUDE.md
 ```
 
 ## REVENUE + PRICING
@@ -80,22 +100,24 @@ Target: 25 paying users by month 3 post-launch.
 - **No secrets in repo.** Encrypted at rest in Supabase Vault; rotation documented in `docs/security.md`.
 - **Tidy folders by default.** When a new file doesn't fit an existing folder, create a neat folder for it rather than dumping it at the repo root or next to unrelated files. Match the `FOLDER STRUCTURE` map above; if a new top-level folder is needed (e.g. `docs/`, `scripts/`, `sql/`, `.github/`), create it with a one-line `README.md` explaining what lives there. Group related files (migrations, fixtures, workflows, ADRs) into their own subfolder once there are 3+ of them, don't wait for sprawl. Never scatter loose `*.sql`, `*.sh`, or `*.md` files at the repo root.
 
-## LAUNCH INTEGRATIONS (v1)
+## LAUNCH INTEGRATIONS
 
-Ship with these 10 in `packages/integrations/`:
+**Spike (Week 1):** Notion only. Plus BYO OpenAPI from day 1.
 
-1. Xero
-2. Employment Hero
-3. Hnry
-4. Atlassian (Jira + Confluence)
-5. Canva
-6. Notion
+**Post-spike, gated on signal:**
+
+1. **Notion** (live in spike).
+2. **Xero** — Week 2, gated on 5 named developer DMs by Sun 2026-05-03.
+3. Atlassian (Jira + Confluence)
+4. HubSpot
+5. Slack
+6. Google Workspace (Drive + Docs + Sheets)
 7. Airtable
-8. HubSpot
-9. Google Workspace (Drive + Docs + Sheets)
-10. Slack
+8. Canva
+9. Employment Hero
+10. Hnry
 
-Plus BYO OpenAPI from v1 day 1.
+Order beyond #2 is by demand, not by the original list. Plus BYO OpenAPI from v1 day 1 (already shipped in spike).
 
 ## BUILD IN PUBLIC
 
@@ -108,11 +130,12 @@ Plus BYO OpenAPI from v1 day 1.
 
 ## DO NOT DO
 
-- Do not ship a "competitor to Composio" messaging angle. AU wedge, not better-Composio.
-- Do not add integrations outside the v1 list until v1.5.
-- Do not ship features that require ongoing manual work per-customer (e.g., custom integrations for a single buyer).
+- Do not chase breadth. Composio / Klavis / Zapier MCP own the catalog race; Conduit owns the developer loop above Nango. More providers without the loop is shovelware.
+- Do not add a second provider before the 5-DM signal bar is hit (Sun 2026-05-03). Notion + BYO OpenAPI is the spike, polish before width.
+- Do not ship features that require ongoing manual work per-customer (custom integrations for a single buyer).
 - Do not accept support contracts before v1 is stable.
 - Do not discuss pricing changes with users during private beta.
+- Do not pull Stripe forward into Week 1. Demand validation before checkout. Stripe lands Week 2 only after the 5-DM bar is hit.
 
 ## CODEX SECOND OPINION (mandatory for decisions)
 
