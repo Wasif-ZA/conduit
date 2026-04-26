@@ -1,0 +1,60 @@
+# Dependabot configuration for Conduit.
+# Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Notes for solo-dev velocity:
+# - Weekly schedule (Mon 09:00 AEST) so PRs land at the start of the work week, not over weekends.
+# - Minor + patch updates grouped into one PR per ecosystem to reduce noise.
+# - Major updates stay individual so each gets a deliberate review (they're more likely to break things).
+# - Update interval is weekly to avoid PR spam during the spike; can tighten to daily once Conduit has paying users.
+
+version: 2
+updates:
+  # JavaScript / TypeScript: Next.js 16, mcp-handler, Supabase, Nango, etc.
+  # GitHub uses "npm" as the ecosystem name for npm/yarn/pnpm. Auto-detects the package manager from the lockfile.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Australia/Sydney"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "Wasif-ZA"
+    assignees:
+      - "Wasif-ZA"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "javascript"
+    groups:
+      # Group all minor + patch updates into one PR per ecosystem.
+      # Major updates stay separate so each gets individual review.
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    # Ignore test and dev dependencies that update frequently and aren't security-critical.
+    # Add specific package ignores here as they prove noisy. Empty for now.
+    ignore: []
+
+  # GitHub Actions workflows in .github/workflows/
+  # Will be silent until the first workflow file lands (Mon scaffold).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Australia/Sydney"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "Wasif-ZA"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
