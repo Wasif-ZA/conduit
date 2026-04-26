@@ -2,6 +2,11 @@
 
 Deferred from the weekend spike per `~/.gstack/projects/Wasif-ZA-conduit/wasif-main-design-20260424-133253.md` and `/gstack-plan-eng-review` 2026-04-25. These are tracked, not forgotten.
 
+## This week (gated on schedule, not signal)
+
+- [ ] **Register LinkedIn page for `tryconduit`**. Tue 2026-04-28 evening, before Wed posts get scheduled. Account email: `admin@tryconduit.dev`. Required for Wed 09:00 AEST launch (X + LinkedIn + Bluesky simultaneous, per `week-1.md`).
+- [ ] **Register Bluesky handle**. Tue 2026-04-28 evening. First choice: `tryconduit.bsky.social`. Stretch: set custom handle `@tryconduit.dev` via Cloudflare DNS TXT record (free, ~2 min, higher signal). Account email: `admin@tryconduit.dev`. Required for Wed 09:00 AEST launch.
+
 ## Week 1 (gated on Monday signal)
 
 - [ ] **Xero as second provider.** Gated on 5 named developer DMs by end of Week 1 (Sun 2026-05-03). Use existing Korvo OAuth tokens. If signal lands, ship in Week 2 day 1.
@@ -25,6 +30,7 @@ Deferred from the weekend spike per `~/.gstack/projects/Wasif-ZA-conduit/wasif-m
 
 ## v1.1 / Beyond
 
+- [ ] **GitHub org `tryconduit`**. Currently the repo lives under personal `Wasif-ZA/conduit`. Move to org at v1 launch (Week 11-12) for clean billing, multi-collaborator visibility, and brand consistency. Account email: `admin@tryconduit.dev`.
 - [ ] **Self-host starter kit ($99 one-off).** Docs + Docker compose + Terraform per CLAUDE.md REVENUE+PRICING. After v1 launches and there's demand evidence.
 - [ ] **The remaining 7 launch integrations** (Employment Hero, Hnry, Atlassian, Canva, Airtable, HubSpot, Google Workspace, Slack). Per CLAUDE.md LAUNCH INTEGRATIONS. Ship as demand calls them out.
 - [ ] **Team tier features.** Team OAuth, audit log, $99 AUD/mo. Implies a `teams` table + RLS pivot.

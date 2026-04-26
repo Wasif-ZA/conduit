@@ -9,6 +9,13 @@ Project-local decision log. Vault-wide strategic decisions live in `05 Meta/deci
 
 ## Active
 
+### Domain: tryconduit.dev
+- **Date**: 2026-04-26 (Sun admin night, ~17:00 AEST)
+- **Decision**: Buy `tryconduit.dev` via Cloudflare Registrar as the canonical Conduit domain. `conduit.dev` and `conduitmcp.*` taken; `try-` prefix is cleaner than `use-` and lines up with the connect-debug-ship demo loop ("try it"). Handles to register against this: `@tryconduit` first, fallbacks `@conduit_mcp` / `@getconduit`.
+- **Why**: needed a `.dev` short enough to type, easy to dictate, and aligned with developer-tool branding. `tryconduit` reads cleanly, says what it is (a thing you try), and works for waitlist landing copy ("Try Conduit"). Bought tonight so SSL has 36+ hours before Wed 09:00 launch.
+- **Revisit**: if a stronger short domain (`conduit.dev`, `conduit.tools`) frees up before v1 launch, evaluate the cost of a redirect-only swap. Otherwise hold.
+- **Status**: active
+
 ### Wedge pivot: developer-first MCP toolkit, AU bundled (not positioned)
 - **Date**: 2026-04-24 (post-`/office-hours` diagnosis with Codex cross-model second opinion)
 - **Decision**: Reframe wedge from "AU/APAC SaaS to Claude" to "the polished connect-debug-ship loop above Nango." Target user is global indie developer or small team, self-serve, values DX over catalog size. AU integrations remain bundled features, not positioning.
@@ -82,6 +89,23 @@ Project-local decision log. Vault-wide strategic decisions live in `05 Meta/deci
 - **Revisit**: 2026-06-23 (8 weeks in). If gstack is getting in the way more than it's helping, uninstall and go back to bare slash commands.
 - **Status**: active
 - **Links**: https://github.com/garrytan/gstack
+
+### Nango connection ID convention + Connect Session auth flow
+- **Date**: 2026-04-26 (Sun admin night, ~19:30 AEST, post Nango OAuth round-trip validation)
+- **Decision**: Connection ID = Supabase user UUID (no provider prefix). Multiple providers per user disambiguated via `providerConfigKey`. Auth flow uses Nango Connect Sessions (Public Key model deprecated by Nango): backend mints a short-lived session token via `POST https://api.nango.dev/connect/sessions` authenticated with the Nango Secret Key, frontend passes that token to `nango.openConnectUI({ sessionToken })`.
+- **Why**: simpler. One row per (user, provider) in Nango maps cleanly onto the spike `connections` table (composite key `user_id` + `provider`). Connect Sessions are the current Nango auth pattern after they deprecated client-side Public Keys; session-token approach avoids exposing any long-lived credential client-side. Locking the convention tonight saves a "wait, what was I going to use?" moment Mon during the `/connect` scaffold.
+- **Revisit**: if Nango re-introduces a client-side public key or if a multi-tenant Conduit team needs to share a single Notion connection (Week 2+ teams work).
+- **Status**: active
+- **Implementation note for Mon**: `/connect` flow becomes `POST /api/nango/connect-session` (server-side, uses Secret Key) → returns `sessionToken` → frontend calls `nango.openConnectUI({ sessionToken })` → on success, callback writes a row in `connections` keyed on `auth.uid()`.
+
+### Notion public connection: created, OAuth round-trip validated end-to-end
+- **Date**: 2026-04-26 (Sun admin night, ~19:15 AEST)
+- **Decision**: Public Notion connection `Conduit` created in Notion's developer portal with capabilities Read content + Update content + Insert content + Read user info incl. email. Redirect URI set to Nango Cloud's callback `https://api.nango.dev/oauth/callback`. Installable in: Any workspace. Marketplace gallery listing **not** submitted (separate review process, not needed for OAuth to work; defer until post-launch if at all).
+- **Why**: spike provider per the Apr-24 pivot. Public (not Internal) is required so any future user can install. The 4 capabilities cover the spike's two demo actions (search pages, create page) plus the user-mapping needed for the `connections` table.
+- **Revisit**: when adding Xero (Week 2 if 5-DM bar hits) — same pattern, separate Notion-style portal step. When polishing for v1 launch — replace placeholder photo icon with a real Conduit logo.
+- **Status**: active
+- **Credentials location**: password manager entry `Conduit — Notion OAuth (production)` (Client ID, Client Secret, Authorization URL).
+- **Nango wiring**: provider config key `notion`, Nango secret key in password manager entry `Conduit — Nango Cloud (production)`. Test connection `8cba6e0b-d523-49b6-a5bc-9d6de7a1ca15` (`test_wasif_zaman`) from dashboard — kept as a pre-warmed fixture for Mon-Tue dogfood (saves re-auth).
 
 ## Resolved
 

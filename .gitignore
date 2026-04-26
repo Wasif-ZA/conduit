@@ -72,11 +72,14 @@ Desktop.ini
 # AI tools (Claude, Gemini, Copilot, etc.)
 # ============================================
 .claude/
-.planning/
 .gemini/
 .copilot/
 .aider*
 .cursor/
+
+# Note: .planning/ is intentionally NOT ignored.
+# Build-in-public — strategy, decisions, roadmap, manifest spec are all public
+# so contributors and adopters can see the why behind the what.
 
 # ============================================
 # Debug & runtime
