@@ -60,7 +60,8 @@ Files to create:
 
 - `lib/supabase/client.ts` — browser client (`createBrowserClient`)
 - `lib/supabase/server.ts` — server client (`createServerClient`) for Server Components
-- `middleware.ts` — refresh session on every request, gate `/dashboard/*` behind auth
+- `lib/supabase/proxy.ts` — proxy helper that refreshes the Supabase session on every request
+- `proxy.ts` (repo root) — Next.js 16 proxy entry; gates `/dashboard/*` behind auth via the helper above
 - `.env.example` — all six env vars from Pre-flight, with placeholder values
 - `.env.local` — real values, NOT committed (already in `.gitignore`)
 

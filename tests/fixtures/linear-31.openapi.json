@@ -1,0 +1,44 @@
+{
+  "openapi": "3.1.0",
+  "jsonSchemaDialect": "https://spec.openapis.org/oas/3.1/dialect/base",
+  "info": {
+    "title": "Linear API (subset for 3.1 parser tests)",
+    "summary": "Three-endpoint trim using OpenAPI 3.1 features; not a real Linear spec.",
+    "version": "1.0.0"
+  },
+  "servers": [{ "url": "https://api.linear.app" }],
+  "paths": {
+    "/graphql": {
+      "post": {
+        "operationId": "graphqlExecute",
+        "summary": "Execute a GraphQL query",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": { "type": "string" },
+                  "variables": { "type": ["object", "null"] }
+                },
+                "required": ["query"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/issues/{issueId}": {
+      "get": {
+        "operationId": "getIssue",
+        "summary": "Fetch a single issue by ID"
+      }
+    },
+    "/v1/teams": {
+      "get": {
+        "operationId": "listTeams",
+        "summary": "List all teams the caller belongs to"
+      }
+    }
+  }
+}

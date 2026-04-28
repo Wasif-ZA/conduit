@@ -1,0 +1,42 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Notion API (subset for parser tests)",
+    "version": "1.0.0",
+    "description": "Five-endpoint trim of Notion's public API. Replace with the official OpenAPI subset before shipping."
+  },
+  "servers": [{ "url": "https://api.notion.com" }],
+  "paths": {
+    "/v1/databases/{database_id}/query": {
+      "post": {
+        "operationId": "postDatabaseQuery",
+        "summary": "Query a database",
+        "description": "Returns pages in a Notion database matching the filter and sort."
+      }
+    },
+    "/v1/databases/{database_id}": {
+      "get": {
+        "operationId": "retrieveDatabase",
+        "summary": "Retrieve a database"
+      }
+    },
+    "/v1/pages/{page_id}": {
+      "get": {
+        "operationId": "retrievePage",
+        "summary": "Retrieve a page"
+      }
+    },
+    "/v1/pages": {
+      "post": {
+        "operationId": "createPage",
+        "summary": "Create a page"
+      }
+    },
+    "/v1/search": {
+      "post": {
+        "operationId": "search",
+        "summary": "Search by title"
+      }
+    }
+  }
+}
