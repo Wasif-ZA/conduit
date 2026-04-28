@@ -32,13 +32,47 @@ Tooling:
 
 ## 19:00-20:00 Scaffold the Next.js 16 app (~1h)
 
+**Note 2026-04-28 (post-execution):** `pnpm create next-app@latest .` now bails outright when the directory has any conflicting files (it does not prompt-per-file as earlier docs implied). The temp-dir workflow below is the actual path; the in-place command is left for reference only.
+
 ```bash
-# at repo root, NOT inside a subfolder
+# IN-PLACE (does not work today; will bail with "Directory contains files that could conflict")
 pnpm create next-app@latest . --ts --app --tailwind --turbopack --eslint --import-alias "@/*"
-# Will prompt to overwrite existing CLAUDE.md/STATUS.md/.planning/ — say no, keep them
 ```
 
-If the prompt won't let you keep `.planning/`: scaffold into a temp dir, `mv` only the new files into the repo, delete the temp.
+**Working pattern (used 2026-04-28):**
+
+```bash
+# 1. Scaffold into a sibling temp dir (non-interactive with these flags)
+cd ..
+pnpm create next-app@latest conduit-scaffold-tmp --ts --app --tailwind --turbopack --eslint --import-alias "@/*"
+
+# 2. Move only new-to-us files; skip CLAUDE.md, README.md, .gitignore (we keep ours)
+cd conduit-scaffold-tmp
+for f in app public AGENTS.md eslint.config.mjs next.config.ts next-env.d.ts package.json pnpm-lock.yaml pnpm-workspace.yaml postcss.config.mjs tsconfig.json; do
+  if [ -e "$f" ] && [ ! -e "../conduit/$f" ]; then mv "$f" "../conduit/" && echo "moved: $f"; fi
+done
+
+# 3. Cleanup. Note: do NOT move node_modules across dirs — pnpm symlinks back to the temp dir and breaks. Reinstall instead.
+cd ..
+rm -rf conduit-scaffold-tmp
+cd conduit
+rm -rf node_modules pnpm-lock.yaml
+pnpm install
+
+# 4. Fix package.json "name" from "conduit-scaffold-tmp" -> "conduit", add test scripts:
+#    "test": "vitest run", "test:watch": "vitest"
+
+# 5. Add devDependencies:
+pnpm add -D vitest
+
+# 6. Add runtime deps for the spike:
+pnpm add @supabase/ssr @supabase/supabase-js @nangohq/frontend @nangohq/node @apidevtools/swagger-parser
+
+# 7. Verify: pnpm test should pass the OpenAPI parser cases that already exist in tests/.
+pnpm test
+```
+
+This pattern is autonomous-safe end-to-end: no interactive prompts. shadcn init in the next subsection is the next hand-back.
 
 **Tailwind 4 sanity:** `tailwind.config.ts` should be minimal; Tailwind 4 reads `@import "tailwindcss"` from `app/globals.css` directly.
 

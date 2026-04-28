@@ -137,6 +137,36 @@ Order beyond #2 is by demand, not by the original list. Plus BYO OpenAPI from v1
 - Do not discuss pricing changes with users during private beta.
 - Do not pull Stripe forward into Week 1. Demand validation before checkout. Stripe lands Week 2 only after the 5-DM bar is hit.
 
+## AUTONOMOUS-FIRST EXECUTION (Conduit-specific hand-back list)
+
+Vault `CLAUDE.md` has the general autonomous-first guidance. This section lists the Conduit-specific commands that ALWAYS need Wasif to run them himself, plus the workarounds where they exist.
+
+**Hand-back commands (Wasif only, do not auto-run)**
+
+| Command | Why hand-back | Workaround if any |
+|---|---|---|
+| `pnpm create next-app@latest .` (in non-empty dir) | Bails when conflicting files exist; cannot pre-answer prompts | Scaffold into `../conduit-scaffold-tmp` non-interactively, then move new files into `conduit/` skipping any name collision (the 2026-04-28 pattern). Workflow saved as a skill candidate; see `.planning/scaffold-checklist.md`. |
+| `pnpm dlx shadcn@latest init` | Interactive prompts (style, base color, RSC, tailwind path, alias) | None reliable. Wasif runs once per project. |
+| `pnpm dlx shadcn@latest add <component>` | Some prompts (overwrite, deps install) | Pass `--yes` for unattended install once defaults are right; default to hand-back. |
+| `pnpm dlx supabase login` | Browser OAuth | None. |
+| `pnpm dlx supabase link --project-ref <REF>` | Needs an authed session + the project ref from Wasif | Claude can suggest the command with the right `<REF>` once Wasif provides it. |
+| `pnpm dlx supabase db push` | Mutates the remote production schema | Claude can prepare the migration in `supabase/migrations/`; Wasif runs `db push`. |
+| Filling `.env` / `.env.local` | Secrets live in password manager | Claude maintains `.env.example` with every var name + a comment about where to source it. |
+| Configuring webhook URLs in Nango / Notion / Stripe dashboards | External UI | Claude documents exact URL + payload shape; Wasif pastes. |
+| Sending email | External mutation | Claude creates Gmail drafts; Wasif sends. |
+| `git push`, `gh pr create`, `gh pr merge`, deploy | Visible to others | Claude can prepare commits and push to a feature branch only when Wasif explicitly says ship. |
+| Inspecting Anthropic harness scheduled-task list | No programmatic access | Claude documents the symptom; Wasif clicks through the UI. |
+
+**Always-autonomous in this repo (no need to ask)**
+
+- `pnpm install`, `pnpm add <pkg>`, `pnpm add -D <pkg>` (Codex consult required only for stack-table additions per the Codex section below).
+- `pnpm test`, `pnpm test:watch`, `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm build`.
+- `pnpm dev` is foreground-blocking; only run if Wasif has asked for a smoke test, and kill cleanly afterwards.
+- Editing any file under `app/`, `lib/`, `components/`, `tests/`, `supabase/migrations/` (writing migrations is fine; applying them is hand-back).
+- Updating `package.json` scripts, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `postcss.config.mjs`, `vitest.config.ts`.
+- Refactoring or deleting code in `app/api/mcp/[slug]/route.ts` and the rest of the MCP runtime (still subject to Codex consult per below).
+- Reading `.env` to verify variable names exist (do NOT echo secret values into chat or commits).
+
 ## CODEX SECOND OPINION (mandatory for decisions)
 
 In this repo, Codex is the cross-model second opinion. Claude does not lock in a non-trivial decision alone. Before a decision is treated as final, Claude must consult Codex and weigh its response.
