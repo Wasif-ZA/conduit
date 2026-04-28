@@ -98,6 +98,14 @@ Project-local decision log. Vault-wide strategic decisions live in `05 Meta/deci
 - **Status**: active
 - **Implementation note for Mon**: `/connect` flow becomes `POST /api/nango/connect-session` (server-side, uses Secret Key) → returns `sessionToken` → frontend calls `nango.openConnectUI({ sessionToken })` → on success, callback writes a row in `connections` keyed on `auth.uid()`.
 
+### MCP transport: Option 2 (mcp-remote stdio bridge) locked as default; Option 1 deferred to Mon AM
+- **Date**: 2026-04-26 (Sun admin night, ~21:30 AEST)
+- **Decision**: Lock **Option 2** (`mcp-remote` stdio bridge in Claude Desktop config) as the default transport for the Wed 2026-04-29 demo. Option 1 (streamable-HTTP `url`+`headers` config) deferred to a 5-min Mon AM validation pass; if it works, swap Claude Desktop config to Option 1 (no server-side code changes needed). If it doesn't, stay on Option 2.
+- **Why**: tonight's spike validated everything below the transport layer end-to-end. `mcp-handler@1.0.4` + `withMcpAuth` build clean on Next.js 16, the Vercel preview deployed cleanly. The remaining gate (does Claude Desktop accept `url`+`headers`?) was blocked tonight by Vercel's default Deployment Protection wall, which gates preview URLs behind Vercel SSO. Disabling that takes one click in Vercel settings, but the user was past their useful focus window. Option 2 is the universal fallback shape every MCP server documents; locking it tonight lets Mon's runtime work proceed with a confirmed-working client config. Option 1 is purely a client-side UX upgrade, the server code is identical.
+- **Mon AM follow-up**: (1) Vercel project settings → Deployment Protection → set to Disabled (or "Only Production"). (2) Re-run the smoke-test curl against the existing preview URL. (3) Update Claude Desktop's `claude_desktop_config.json` with the `url`+`headers` block. (4) Restart Claude Desktop. (5) If `echo` tool round-trips, swap Conduit's documented config from Option 2 to Option 1. (6) Either way, document the result and move on.
+- **Status**: active
+- **Spike artefacts**: throwaway scratch repo `03 Projects/conduit-transport-spike/` (Next.js 16 + `mcp-handler@1.0.4` + `withMcpAuth` + a single `echo` tool). NOT to be merged into the real `conduit/` repo, NOT in git. Discard after Mon AM Option 1 validation.
+
 ### Notion public connection: created, OAuth round-trip validated end-to-end
 - **Date**: 2026-04-26 (Sun admin night, ~19:15 AEST)
 - **Decision**: Public Notion connection `Conduit` created in Notion's developer portal with capabilities Read content + Update content + Insert content + Read user info incl. email. Redirect URI set to Nango Cloud's callback `https://api.nango.dev/oauth/callback`. Installable in: Any workspace. Marketplace gallery listing **not** submitted (separate review process, not needed for OAuth to work; defer until post-launch if at all).
